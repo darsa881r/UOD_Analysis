@@ -1,11 +1,10 @@
 title: 'Testing UOD survey data'
 author: "Sabbir Hassan"
-output:
-  html_notebook: default
-  word_document: default
-  pdf_document: default
-  html_document:
-    df_print: paged
+output: 
+   html_notebook: default
+   word_document: default
+   pdf_document: default
+   rmarkdown::github_document
 ---
 
 ```{r  echo=FALSE, results='hide',message=FALSE, warning=FALSE,fig.show='hide'}
@@ -20,6 +19,7 @@ library("data.table")
 library("ggplot2")
 library("nCDunnett")
 library("multcompView")
+
 
 ```
 # Generating scores:
@@ -189,7 +189,10 @@ ggplot(viz_schools, aes(x = Schools, y= count, fill=Schools)) +
 ggplot(newdata_melted, aes(x=Scores, fill=Tests)) + 
   geom_histogram(breaks=seq(0,100, by=10), 
                  col="blue") +
-  ggtitle("Distribution of avg Pre & Post Scores \n by Schools")
+  ggtitle("Distribution of Pre & Post Scores \n (averaged by Schools)") +
+  xlab("% Avg Scores") +
+  ylab("Count")
+
 
 #plot(newdata_melted$Scores[which((newdata_melted$Tests == "PreScore"))],newdata_melted$Scores[which((newdata_melted$Tests == "PostScore"))],xlab="Pre Scores", ylab="Post Scores")
 ```
@@ -204,21 +207,6 @@ ggplot(viz_schools, aes(x = Schools, y = Scores,fill=Tests)) +
     ylab("% Avg Score")
 
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -304,98 +292,106 @@ head(clean.data2, n = 5)
 
 
 
-
-
-
-
-
-
-
-
-
-
 ```{r  echo=FALSE, results='hide',message=FALSE}
 
-newdata2$Treat01 <- c(rep(0,nrow(newdata2)))
-newdata2$Treat02 <- c(rep(0,nrow(newdata2)))
-newdata2$Treat03 <- c(rep(0,nrow(newdata2)))
-newdata2$Treat04 <- c(rep(0,nrow(newdata2)))
+newdata_melted$Treat01 <- c(rep(0,nrow(newdata_melted)))
+newdata_melted$Treat02 <- c(rep(0,nrow(newdata_melted)))
+newdata_melted$Treat03 <- c(rep(0,nrow(newdata_melted)))
+newdata_melted$Treat04 <- c(rep(0,nrow(newdata_melted)))
 
 
 
-newdata2$Treat01[which(newdata2$Schools == "B" & newdata2$Tests == "PreScore")] <- 1
-newdata2$Treat01[which(newdata2$Schools == "B" & newdata2$Tests == "PostScore")] <- 2
-newdata2$Treat01[which(newdata2$Schools == "F" & newdata2$Tests == "PreScore")] <- 3
-newdata2$Treat01[which(newdata2$Schools == "F" & newdata2$Tests == "PostScore")] <- 4
-newdata2$Treat01[which(newdata2$Schools == "M" & newdata2$Tests == "PreScore")] <- 5
-newdata2$Treat01[which(newdata2$Schools == "M" & newdata2$Tests == "PostScore")] <- 6
-newdata2$Treat01[which(newdata2$Schools == "P" & newdata2$Tests == "PreScore")] <- 7
-newdata2$Treat01[which(newdata2$Schools == "P" & newdata2$Tests == "PostScore")] <- 8
+newdata_melted$Treat01[which(newdata_melted$Schools == "B" & newdata_melted$Tests == "PreScore")] <- 1
+newdata_melted$Treat01[which(newdata_melted$Schools == "B" & newdata_melted$Tests == "PostScore")] <- 2
+newdata_melted$Treat01[which(newdata_melted$Schools == "F" & newdata_melted$Tests == "PreScore")] <- 3
+newdata_melted$Treat01[which(newdata_melted$Schools == "F" & newdata_melted$Tests == "PostScore")] <- 4
+newdata_melted$Treat01[which(newdata_melted$Schools == "M" & newdata_melted$Tests == "PreScore")] <- 5
+newdata_melted$Treat01[which(newdata_melted$Schools == "M" & newdata_melted$Tests == "PostScore")] <- 6
+newdata_melted$Treat01[which(newdata_melted$Schools == "P" & newdata_melted$Tests == "PreScore")] <- 7
+newdata_melted$Treat01[which(newdata_melted$Schools == "P" & newdata_melted$Tests == "PostScore")] <- 8
 
 
-newdata2$Treat01 <- as.factor(newdata2$Treat01)
+newdata_melted$Treat01 <- as.factor(newdata_melted$Treat01)
 
 #rawdata <- rawdata[-which(rawdata$Subjects == "F4"),]
 
 
-newdata2$Treat02[which(newdata2$Schools == "B" & newdata2$Tests == "PreScore")] <- 1
-newdata2$Treat02[which(newdata2$Schools == "B" & newdata2$Tests == "PostScore")] <- 2
-newdata2$Treat02[which(newdata2$Schools == "F" & newdata2$Tests == "PreScore")] <- 1
-newdata2$Treat02[which(newdata2$Schools == "F" & newdata2$Tests == "PostScore")] <- 2
-newdata2$Treat02[which(newdata2$Schools == "M" & newdata2$Tests == "PreScore")] <- 3
-newdata2$Treat02[which(newdata2$Schools == "M" & newdata2$Tests == "PostScore")] <- 4
-newdata2$Treat02[which(newdata2$Schools == "P" & newdata2$Tests == "PreScore")] <- 3
-newdata2$Treat02[which(newdata2$Schools == "P" & newdata2$Tests == "PostScore")] <- 4
+newdata_melted$Treat02[which(newdata_melted$Schools == "B" & newdata_melted$Tests == "PreScore")] <- 1
+newdata_melted$Treat02[which(newdata_melted$Schools == "B" & newdata_melted$Tests == "PostScore")] <- 2
+newdata_melted$Treat02[which(newdata_melted$Schools == "F" & newdata_melted$Tests == "PreScore")] <- 1
+newdata_melted$Treat02[which(newdata_melted$Schools == "F" & newdata_melted$Tests == "PostScore")] <- 2
+newdata_melted$Treat02[which(newdata_melted$Schools == "M" & newdata_melted$Tests == "PreScore")] <- 3
+newdata_melted$Treat02[which(newdata_melted$Schools == "M" & newdata_melted$Tests == "PostScore")] <- 4
+newdata_melted$Treat02[which(newdata_melted$Schools == "P" & newdata_melted$Tests == "PreScore")] <- 3
+newdata_melted$Treat02[which(newdata_melted$Schools == "P" & newdata_melted$Tests == "PostScore")] <- 4
 
 
-newdata2$Treat02 <- as.factor(newdata2$Treat02)
+newdata_melted$Treat02 <- as.factor(newdata_melted$Treat02)
 
-newdata2$Treat03[which(newdata2$Schools == "B" & newdata2$Tests == "PreScore")] <- 1
-newdata2$Treat03[which(newdata2$Schools == "B" & newdata2$Tests == "PostScore")] <- 2
-newdata2$Treat03[which(newdata2$Schools == "F" & newdata2$Tests == "PreScore")] <- 3
-newdata2$Treat03[which(newdata2$Schools == "F" & newdata2$Tests == "PostScore")] <- 4
-newdata2$Treat03[which(newdata2$Schools == "M" & newdata2$Tests == "PreScore")] <- 1
-newdata2$Treat03[which(newdata2$Schools == "M" & newdata2$Tests == "PostScore")] <- 2
-newdata2$Treat03[which(newdata2$Schools == "P" & newdata2$Tests == "PreScore")] <- 3
-newdata2$Treat03[which(newdata2$Schools == "P" & newdata2$Tests == "PostScore")] <- 4
-
-
-newdata2$Treat03 <- as.factor(newdata2$Treat03)
-
-newdata2$Treat04[which(newdata2$Schools == "B" & newdata2$Tests == "PreScore")] <- 1
-newdata2$Treat04[which(newdata2$Schools == "B" & newdata2$Tests == "PostScore")] <- 2
-newdata2$Treat04[which(newdata2$Schools == "F" & newdata2$Tests == "PreScore")] <- 3
-newdata2$Treat04[which(newdata2$Schools == "F" & newdata2$Tests == "PostScore")] <- 4
-newdata2$Treat04[which(newdata2$Schools == "M" & newdata2$Tests == "PreScore")] <- 3
-newdata2$Treat04[which(newdata2$Schools == "M" & newdata2$Tests == "PostScore")] <- 4
-newdata2$Treat04[which(newdata2$Schools == "P" & newdata2$Tests == "PreScore")] <- 1
-newdata2$Treat04[which(newdata2$Schools == "P" & newdata2$Tests == "PostScore")] <- 2
+newdata_melted$Treat03[which(newdata_melted$Schools == "B" & newdata_melted$Tests == "PreScore")] <- 1
+newdata_melted$Treat03[which(newdata_melted$Schools == "B" & newdata_melted$Tests == "PostScore")] <- 2
+newdata_melted$Treat03[which(newdata_melted$Schools == "F" & newdata_melted$Tests == "PreScore")] <- 3
+newdata_melted$Treat03[which(newdata_melted$Schools == "F" & newdata_melted$Tests == "PostScore")] <- 4
+newdata_melted$Treat03[which(newdata_melted$Schools == "M" & newdata_melted$Tests == "PreScore")] <- 1
+newdata_melted$Treat03[which(newdata_melted$Schools == "M" & newdata_melted$Tests == "PostScore")] <- 2
+newdata_melted$Treat03[which(newdata_melted$Schools == "P" & newdata_melted$Tests == "PreScore")] <- 3
+newdata_melted$Treat03[which(newdata_melted$Schools == "P" & newdata_melted$Tests == "PostScore")] <- 4
 
 
-newdata2$Treat04 <- as.factor(newdata2$Treat04)
+newdata_melted$Treat03 <- as.factor(newdata_melted$Treat03)
+
+newdata_melted$Treat04[which(newdata_melted$Schools == "B" & newdata_melted$Tests == "PreScore")] <- 1
+newdata_melted$Treat04[which(newdata_melted$Schools == "B" & newdata_melted$Tests == "PostScore")] <- 2
+newdata_melted$Treat04[which(newdata_melted$Schools == "F" & newdata_melted$Tests == "PreScore")] <- 3
+newdata_melted$Treat04[which(newdata_melted$Schools == "F" & newdata_melted$Tests == "PostScore")] <- 4
+newdata_melted$Treat04[which(newdata_melted$Schools == "M" & newdata_melted$Tests == "PreScore")] <- 3
+newdata_melted$Treat04[which(newdata_melted$Schools == "M" & newdata_melted$Tests == "PostScore")] <- 4
+newdata_melted$Treat04[which(newdata_melted$Schools == "P" & newdata_melted$Tests == "PreScore")] <- 1
+newdata_melted$Treat04[which(newdata_melted$Schools == "P" & newdata_melted$Tests == "PostScore")] <- 2
+
+
+newdata_melted$Treat04 <- as.factor(newdata_melted$Treat04)
 
 
 
-head(newdata2)
+head(newdata_melted)
 
 
 ```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ```{r  echo=FALSE, results='hide',message=FALSE}
 
-#ggplot(newdata2, aes(x=Scores, fill=Treat02)) + 
+#ggplot(newdata_melted, aes(x=Scores, fill=Treat02)) + 
 #  geom_histogram(breaks=seq(0,100, by=20), 
 #                 col="blue") 
 
-ggplot(newdata2, aes(x = Schools, y= Scores, fill=Treat01)) +
+ggplot(newdata_melted, aes(x = Schools, y= Scores, fill=Treat01)) +
     geom_bar(position="stack", stat="identity")
 
-ggplot(newdata2, aes(x = Schools, y= Scores, fill=Treat02)) +
+ggplot(newdata_melted, aes(x = Schools, y= Scores, fill=Treat02)) +
     geom_bar(position="stack", stat="identity")
 
-ggplot(newdata2, aes(x = Schools, y= Scores, fill=Treat03)) +
+ggplot(newdata_melted, aes(x = Schools, y= Scores, fill=Treat03)) +
     geom_bar(position="stack", stat="identity")
 
-ggplot(newdata2, aes(x = Schools, y= Scores, fill=Treat04)) +
+ggplot(newdata_melted, aes(x = Schools, y= Scores, fill=Treat04)) +
     geom_bar(position="stack", stat="identity")
 
 
@@ -406,7 +402,7 @@ ggplot(newdata2, aes(x = Schools, y= Scores, fill=Treat04)) +
 
 ```{r  echo=FALSE, results='hide',message=FALSE}
 
-sampledata <- newdata2
+sampledata <- newdata_melted
 
 head(sampledata)
 

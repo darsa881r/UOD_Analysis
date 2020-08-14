@@ -35,8 +35,8 @@ vignettes/*.pdf
 
 # Output data
 *.Rda
-*.png
 *.csv
+*.html
 
 # Files
 
