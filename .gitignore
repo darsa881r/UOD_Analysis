@@ -35,14 +35,12 @@ vignettes/*.pdf
 
 # Output data
 *.Rda
-*.pdf
+*.png
 *.csv
-*.html
 
 # Files
 
 /input
-/output
 /resources
 
 # System files
