@@ -4,10 +4,9 @@ output:
    html_notebook: default
    word_document: default
    pdf_document: default
-   rmarkdown::github_document
 ---
 
-```{r  echo=FALSE, results='hide',message=FALSE, warning=FALSE,fig.show='hide'}
+```{r  echo=FALSE, results='hide',message=FALSE, warning=FALSE, fig.show='hide'}
 
 library("R.methodsS3")
 library("R.oo")
@@ -19,32 +18,61 @@ library("data.table")
 library("ggplot2")
 library("nCDunnett")
 library("multcompView")
+library("ggpubr")
 
 
 ```
-# Generating scores:
 
+# Understanding Our differences: Autism Survey Analysis
 
-```{r echo=FALSE,message=FALSE}
+### Score Map Table:
+
+```{r echo=FALSE, results = 'asis', message=FALSE}
 
 rm(list=ls())
 
-questions <- as.factor(c(rep(c("Q1. Do you know anyone with autism?"),4),rep(c("Q3a.Most people with autism all act the same."), 3),rep(c("Q3b. The brain is the part of the body that is affected by autism."), 3),rep(c("Q3c. Many people with autism have a really strong interest in one specific topic."), 3),rep(c("Q3d. Bright lights or loud noises don’t really bother most people with autism."), 3),rep(c("Q3e. Most people with autism are really good at knowing when someone is mad, or worried, or happy."), 3)))
+q_codes <- as.factor(c(rep("Q3a",3), rep("Q3b",3), rep("Q3c",3), rep("Q3d",3) ,rep("Q3e",3)))
 
-options <- as.factor(c("No","Yes, I have autism","Yes, I know someone with autism","Not sure","True","False","Don't Know","True","False","Don't Know","True","False","Don't Know","True","False","Don't Know","True","False","Don't Know"))
+questions <- as.factor(c(rep(c("People autism act same."), 3),rep(c("Brain affected by autism."), 3),rep(c("People autism strong interest in one topic."), 3),rep(c("Bright lights, loud noises don’t bother people autism."), 3),rep(c("People autism good at reading emotions."), 3)))
 
-survey_data <- data.table(questions, options)
+survey_data <- data.table(q_codes, questions)
 
-survey_data$scores <- as.integer(c(0,2,2,1,1,2,0,2,1,0,2,1,0,1,2,0,1,2,0))
+survey_data$options <- as.factor(c("True","False","Don't Know","True","False","Don't Know","True","False","Don't Know","True","False","Don't Know","True","False","Don't Know"))
 
-print(survey_data)
+survey_data$scores <- as.integer(c(0,1,0,1,0,0,1,0,0,0,1,0,0,1,0))
+
+
+#head(survey_data, n=05)
+
+kable(survey_data)
+
+#write.csv(survey_data, file = "C:\\Users\\sabbi\\Dropbox\\ProBono\\UOD\\UOD_Analysis\\output\\scoremap.csv")
+
+
+```
+
+### Figure 01
+
+```{r echo=FALSE, results = 'show', message=FALSE}
+
+viz_survey <- survey_data
+
+ggplot(viz_survey, aes(x = as.factor(viz_survey$scores), y = scores, fill=options)) +
+    geom_bar(position="dodge", stat="identity") +
+    ggtitle("Assignment of Scores \n by Questions") +
+    xlab("Questions") + 
+    ylab("Score") +
+    facet_grid( ~q_codes)
+rm(viz_survey)
 
 ```
 
 
-# Generating Table
 
-Creating the table  with treatment column and corresponding response and explaining randomization step by step.
+
+### Generating Table
+
+Converting raw data table into long tables.
 
 ```{r echo=FALSE, results='hide',message=FALSE}
 
@@ -53,7 +81,7 @@ rawdata=read.csv(file_location, header =TRUE, na.strings=c("","N/A","NA"),
                  stringsAsFactors = FALSE)
 
 setDT(rawdata)
-set.seed(10)
+set.seed(100)
 # Shuffling the dataset
 rows <- sample(nrow(rawdata))
 rawdata <- rawdata[rows, ]
@@ -71,7 +99,7 @@ rawdata$Q4 <- as.factor(rawdata$Q4)
 rawdata$Q5 <- as.factor(rawdata$Q5)
 
 
-head(rawdata, n = 5)
+#kable(head(rawdata, n = 5))
 
 
 ```
@@ -83,15 +111,30 @@ clean.data <- na.omit(rawdata)
 
 clean.data <- clean.data[, c("Pre.Q.1","Q4","Q5"):=NULL] 
 
-clean.data$Pre.Q3a[((clean.data$Pre.Q3a==3))]=0
-clean.data$Post.Q3a[((clean.data$Post.Q3a==3))]=0
+idx1 = which(clean.data$Pre.Q3a==1)
+idx2 = which(clean.data$Pre.Q3a==2)
+idx3 = which(clean.data$Pre.Q3a==3)
+
+clean.data$Pre.Q3a[idx1]=0
+clean.data$Pre.Q3a[idx2]=2
+clean.data$Pre.Q3a[idx3]=0
+
+
+idx1 = which(clean.data$Post.Q3a==1)
+idx2 = which(clean.data$Post.Q3a==2)
+idx3 = which(clean.data$Post.Q3a==3)
+
+clean.data$Post.Q3a[idx1]=0
+clean.data$Post.Q3a[idx2]=2
+clean.data$Post.Q3a[idx3]=0
+
 
 idx1 = which(clean.data$Pre.Q3b==1)
 idx2 = which(clean.data$Pre.Q3b==2)
 idx3 = which(clean.data$Pre.Q3b==3)
 
 clean.data$Pre.Q3b[idx1]=2
-clean.data$Pre.Q3b[idx2]=1
+clean.data$Pre.Q3b[idx2]=0
 clean.data$Pre.Q3b[idx3]=0
 
 idx1 = which(clean.data$Post.Q3b==1)
@@ -99,7 +142,7 @@ idx2 = which(clean.data$Post.Q3b==2)
 idx3 = which(clean.data$Post.Q3b==3)
 
 clean.data$Post.Q3b[idx1]=2
-clean.data$Post.Q3b[idx2]=1
+clean.data$Post.Q3b[idx2]=0
 clean.data$Post.Q3b[idx3]=0
 
 idx1 = which(clean.data$Pre.Q3c==1)
@@ -107,7 +150,7 @@ idx2 = which(clean.data$Pre.Q3c==2)
 idx3 = which(clean.data$Pre.Q3c==3)
 
 clean.data$Pre.Q3c[idx1]=2
-clean.data$Pre.Q3c[idx2]=1
+clean.data$Pre.Q3c[idx2]=0
 clean.data$Pre.Q3c[idx3]=0
 
 idx1 = which(clean.data$Post.Q3c==1)
@@ -115,16 +158,48 @@ idx2 = which(clean.data$Post.Q3c==2)
 idx3 = which(clean.data$Post.Q3c==3)
 
 clean.data$Post.Q3c[idx1]=2
-clean.data$Post.Q3c[idx2]=1
+clean.data$Post.Q3c[idx2]=0
 clean.data$Post.Q3c[idx3]=0
 
-clean.data$Pre.Q3d[((clean.data$Pre.Q3d==3))]=0
-clean.data$Post.Q3d[((clean.data$Post.Q3d==3))]=0
+idx1 = which(clean.data$Pre.Q3a==1)
+idx2 = which(clean.data$Pre.Q3a==2)
+idx3 = which(clean.data$Pre.Q3a==3)
 
-clean.data$Pre.Q3e[((clean.data$Pre.Q3e==3))]=0
-clean.data$Post.Q3e[((clean.data$Post.Q3e==3))]=0
+clean.data$Pre.Q3d[idx1]=0
+clean.data$Pre.Q3d[idx2]=2
+clean.data$Pre.Q3d[idx3]=0
 
-head(clean.data, n = 5)
+
+idx1 = which(clean.data$Post.Q3d==1)
+idx2 = which(clean.data$Post.Q3d==2)
+idx3 = which(clean.data$Post.Q3d==3)
+
+clean.data$Post.Q3d[idx1]=0
+clean.data$Post.Q3d[idx2]=2
+clean.data$Post.Q3d[idx3]=0
+
+
+
+idx1 = which(clean.data$Pre.Q3e==1)
+idx2 = which(clean.data$Pre.Q3e==2)
+idx3 = which(clean.data$Pre.Q3e==3)
+
+clean.data$Pre.Q3e[idx1]=0
+clean.data$Pre.Q3e[idx2]=2
+clean.data$Pre.Q3e[idx3]=0
+
+
+idx1 = which(clean.data$Post.Q3e==1)
+idx2 = which(clean.data$Post.Q3e==2)
+idx3 = which(clean.data$Post.Q3e==3)
+
+clean.data$Post.Q3e[idx1]=0
+clean.data$Post.Q3e[idx2]=2
+clean.data$Post.Q3e[idx3]=0
+
+
+
+#head(clean.data, n = 5)
 
 rm(idx1)
 rm(idx2)
@@ -141,13 +216,13 @@ clean.data$PostScore <- apply(clean.data[,c(9:13)], 1, sum)
 clean.data$PostScore <- (clean.data$PostScore/10)*100
 
 
-head(clean.data, n = 5)
+#kable(head(clean.data, n = 5))
 
 ```
 
 
 
-```{r  echo=FALSE, results='hide',message=FALSE}
+```{r  echo=FALSE, results='show',message=FALSE}
 
 newdata <- clean.data[,c("Subject.Id","Schools","PreScore","PostScore"),]
 
@@ -160,20 +235,31 @@ col_names_old <- names(newdata_melted)
 setnames(newdata_melted, col_names_old[3:4], c("Tests","Scores"))
 
 #head(newdata)
+set.seed(20)
+# Shuffling the dataset
+rows <- sample(nrow(newdata_melted))
+newdata_melted <- newdata_melted[rows, ]
+rm(rows)
 
-head(newdata_melted, n=5)
+
+kable(head(newdata_melted, n=5))
 
 
 ```
 
-```{r echo=FALSE, results='hide',message=FALSE}
+```{r echo=FALSE, results='hide', message=FALSE}
 
-viz_schools <- newdata_melted[, .(count = .N, Scores = mean(Scores)), by = c('Schools','Tests')]
-head(viz_schools, n=5)
+
 
 ```
 
-```{r}
+### Figure 02:
+
+```{r echo=FALSE, results='hide', message=FALSE}
+
+viz_schools <- newdata_melted[, .(count = .N, Avg_Scores = mean(Scores)), by = c('Schools','Tests')]
+#head(viz_schools, n=5)
+
 ggplot(viz_schools, aes(x = Schools, y= count, fill=Schools)) +
     geom_bar(stat="identity") +
     ggtitle("Count of Students \n by Schools") +
@@ -181,13 +267,16 @@ ggplot(viz_schools, aes(x = Schools, y= count, fill=Schools)) +
     ylab("Count")
 
 
+rm(viz_schools)
 
 ```
 
-```{r  echo=FALSE, results='hide',message=FALSE}
+### Figure 03:
+
+```{r  echo=FALSE, message=FALSE}
 
 ggplot(newdata_melted, aes(x=Scores, fill=Tests)) + 
-  geom_histogram(breaks=seq(0,100, by=10), 
+  geom_histogram(breaks=seq(0,100, by=20), 
                  col="blue") +
   ggtitle("Distribution of Pre & Post Scores \n (averaged by Schools)") +
   xlab("% Avg Scores") +
@@ -197,14 +286,20 @@ ggplot(newdata_melted, aes(x=Scores, fill=Tests)) +
 #plot(newdata_melted$Scores[which((newdata_melted$Tests == "PreScore"))],newdata_melted$Scores[which((newdata_melted$Tests == "PostScore"))],xlab="Pre Scores", ylab="Post Scores")
 ```
 
+### Figure 04:
 
+```{r echo=FALSE, message=FALSE}
 
-```{r}
-ggplot(viz_schools, aes(x = Schools, y = Scores,fill=Tests)) +
+viz_schools <- newdata_melted[, .(count = .N, Avg_Scores = mean(Scores)), by = c('Schools','Tests')]
+#head(viz_schools, n=5)
+
+ggplot(viz_schools, aes(x = Schools, y = Avg_Scores,fill=Tests)) +
     geom_bar(position="dodge", stat="identity") +
+    #geom_hline(yintercept=0.5, linetype="dashed", color = "blue", size=1) +
     ggtitle("Comparison of PreScore & PostScore \n by Schools") +
     xlab("Schools") + 
     ylab("% Avg Score")
+rm(viz_schools)
 
 ```
 
@@ -214,7 +309,7 @@ ggplot(viz_schools, aes(x = Schools, y = Scores,fill=Tests)) +
 ```{r echo=FALSE, results='hide',message=FALSE}
 
 clean.data2 <- na.omit(rawdata)
-clean.data2 <- clean.data2[, c("Pre.Q.1","Q4","Q5"):=NULL] 
+clean.data2 <- clean.data2[, c("Schools","Student.Id","Pre.Q.1","Q4","Q5"):=NULL] 
 
 # ressiging pre-test data
 
@@ -271,419 +366,87 @@ head(clean.data2, n = 5)
 ```
 
 
+```{r echo=FALSE, results='hide', message=FALSE}
 
+#clean.data2[, grepl("^Pre.", names(clean.data2)), with = FALSE]
+col_names_old <- colnames(clean.data2)
+col_names_old <- col_names_old[grepl("^Pre.|^Post.", col_names_old)]
 
+d <- data.table(options=factor(), count=numeric(), tests=factor(), q_codes=factor())
 
+#q <- "Pre.Q3b"
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-```{r  echo=FALSE, results='hide',message=FALSE}
-
-newdata_melted$Treat01 <- c(rep(0,nrow(newdata_melted)))
-newdata_melted$Treat02 <- c(rep(0,nrow(newdata_melted)))
-newdata_melted$Treat03 <- c(rep(0,nrow(newdata_melted)))
-newdata_melted$Treat04 <- c(rep(0,nrow(newdata_melted)))
-
-
-
-newdata_melted$Treat01[which(newdata_melted$Schools == "B" & newdata_melted$Tests == "PreScore")] <- 1
-newdata_melted$Treat01[which(newdata_melted$Schools == "B" & newdata_melted$Tests == "PostScore")] <- 2
-newdata_melted$Treat01[which(newdata_melted$Schools == "F" & newdata_melted$Tests == "PreScore")] <- 3
-newdata_melted$Treat01[which(newdata_melted$Schools == "F" & newdata_melted$Tests == "PostScore")] <- 4
-newdata_melted$Treat01[which(newdata_melted$Schools == "M" & newdata_melted$Tests == "PreScore")] <- 5
-newdata_melted$Treat01[which(newdata_melted$Schools == "M" & newdata_melted$Tests == "PostScore")] <- 6
-newdata_melted$Treat01[which(newdata_melted$Schools == "P" & newdata_melted$Tests == "PreScore")] <- 7
-newdata_melted$Treat01[which(newdata_melted$Schools == "P" & newdata_melted$Tests == "PostScore")] <- 8
-
-
-newdata_melted$Treat01 <- as.factor(newdata_melted$Treat01)
-
-#rawdata <- rawdata[-which(rawdata$Subjects == "F4"),]
-
-
-newdata_melted$Treat02[which(newdata_melted$Schools == "B" & newdata_melted$Tests == "PreScore")] <- 1
-newdata_melted$Treat02[which(newdata_melted$Schools == "B" & newdata_melted$Tests == "PostScore")] <- 2
-newdata_melted$Treat02[which(newdata_melted$Schools == "F" & newdata_melted$Tests == "PreScore")] <- 1
-newdata_melted$Treat02[which(newdata_melted$Schools == "F" & newdata_melted$Tests == "PostScore")] <- 2
-newdata_melted$Treat02[which(newdata_melted$Schools == "M" & newdata_melted$Tests == "PreScore")] <- 3
-newdata_melted$Treat02[which(newdata_melted$Schools == "M" & newdata_melted$Tests == "PostScore")] <- 4
-newdata_melted$Treat02[which(newdata_melted$Schools == "P" & newdata_melted$Tests == "PreScore")] <- 3
-newdata_melted$Treat02[which(newdata_melted$Schools == "P" & newdata_melted$Tests == "PostScore")] <- 4
-
-
-newdata_melted$Treat02 <- as.factor(newdata_melted$Treat02)
-
-newdata_melted$Treat03[which(newdata_melted$Schools == "B" & newdata_melted$Tests == "PreScore")] <- 1
-newdata_melted$Treat03[which(newdata_melted$Schools == "B" & newdata_melted$Tests == "PostScore")] <- 2
-newdata_melted$Treat03[which(newdata_melted$Schools == "F" & newdata_melted$Tests == "PreScore")] <- 3
-newdata_melted$Treat03[which(newdata_melted$Schools == "F" & newdata_melted$Tests == "PostScore")] <- 4
-newdata_melted$Treat03[which(newdata_melted$Schools == "M" & newdata_melted$Tests == "PreScore")] <- 1
-newdata_melted$Treat03[which(newdata_melted$Schools == "M" & newdata_melted$Tests == "PostScore")] <- 2
-newdata_melted$Treat03[which(newdata_melted$Schools == "P" & newdata_melted$Tests == "PreScore")] <- 3
-newdata_melted$Treat03[which(newdata_melted$Schools == "P" & newdata_melted$Tests == "PostScore")] <- 4
-
-
-newdata_melted$Treat03 <- as.factor(newdata_melted$Treat03)
-
-newdata_melted$Treat04[which(newdata_melted$Schools == "B" & newdata_melted$Tests == "PreScore")] <- 1
-newdata_melted$Treat04[which(newdata_melted$Schools == "B" & newdata_melted$Tests == "PostScore")] <- 2
-newdata_melted$Treat04[which(newdata_melted$Schools == "F" & newdata_melted$Tests == "PreScore")] <- 3
-newdata_melted$Treat04[which(newdata_melted$Schools == "F" & newdata_melted$Tests == "PostScore")] <- 4
-newdata_melted$Treat04[which(newdata_melted$Schools == "M" & newdata_melted$Tests == "PreScore")] <- 3
-newdata_melted$Treat04[which(newdata_melted$Schools == "M" & newdata_melted$Tests == "PostScore")] <- 4
-newdata_melted$Treat04[which(newdata_melted$Schools == "P" & newdata_melted$Tests == "PreScore")] <- 1
-newdata_melted$Treat04[which(newdata_melted$Schools == "P" & newdata_melted$Tests == "PostScore")] <- 2
-
-
-newdata_melted$Treat04 <- as.factor(newdata_melted$Treat04)
-
-
-
-head(newdata_melted)
-
-
-```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-```{r  echo=FALSE, results='hide',message=FALSE}
-
-#ggplot(newdata_melted, aes(x=Scores, fill=Treat02)) + 
-#  geom_histogram(breaks=seq(0,100, by=20), 
-#                 col="blue") 
-
-ggplot(newdata_melted, aes(x = Schools, y= Scores, fill=Treat01)) +
-    geom_bar(position="stack", stat="identity")
-
-ggplot(newdata_melted, aes(x = Schools, y= Scores, fill=Treat02)) +
-    geom_bar(position="stack", stat="identity")
-
-ggplot(newdata_melted, aes(x = Schools, y= Scores, fill=Treat03)) +
-    geom_bar(position="stack", stat="identity")
-
-ggplot(newdata_melted, aes(x = Schools, y= Scores, fill=Treat04)) +
-    geom_bar(position="stack", stat="identity")
-
-
-
-
-```
-
-
-```{r  echo=FALSE, results='hide',message=FALSE}
-
-sampledata <- newdata_melted
-
-head(sampledata)
-
-```
-
-
-
-
-
-Figuring out the SSE, SSTr and MSE, MSTr from ANOVA functions
-
-```{r echo=FALSE, results='hide',message=FALSE}
-
-model1 <- aov(Scores ~ Treat02, data=sampledata) #must use the trt levels as factors
-S <- summary(model1)
-print(S)
-
-SSE <- S[[1]]$`Sum Sq`[2] # follows sigma^2 * Chi-squared (n-a) distribution
-SSE0 <- S[[1]]$`Sum Sq`[2]+S[[1]]$`Sum Sq`[1] # follows sigma^2 * Chi-squared (n-1) distribution
-SSTr <- S[[1]]$`Sum Sq`[1] # follows sigma^2 * Chi-squared (a-1) distribution
-MSTr <- S[[1]]$`Mean Sq`[1]
-MSE <- S[[1]]$`Mean Sq`[2]
-
-f <- S[[1]]$`F value`[1]# This would follow F-dist(df1,df2)
-
-# Get F-Dist value from table of function 
-# alpha = 0.01 # significant level alpha
-# F_value <- qf(alpha, df1=2, df2=n-a, lower.tail = FALSE, log.p = FALSE)
-# P_value <- pf(f, df1=2, df2=n-a, lower.tail = FALSE, log.p = FALSE)
-
-```
-
-Doing Tukey HSD Post-Hoc test
-
-
-```{r echo=FALSE, results='hide',message=FALSE}
-
- 
-# What is the effect of the treatment on the value ?
-model1 <- aov(Scores ~ Treat01, data=sampledata) #must use the trt levels as factors
-S <- summary(model1)
-#print(S)
- 
-# Tukey test to study each pair of treatment :
-TUKEY <- TukeyHSD(x=model1, "Treat01", conf.level=0.95)
-#print(TUKEY)
-# Tuckey test representation :
-plot(TUKEY , las=1 , col="brown")
-
-tukey_table01 <- as.data.table(TUKEY$Treat01)
-tukey_table01$names <- rownames(TUKEY$Treat01)
-#tukey_table02 <- tukey_table02[-which(names != "4-1" & names != "3-2"),]
-
-print(tukey_table01)
-
-
-
-
-```
-
-
-```{r echo=FALSE, results='hide',message=FALSE}
-
-# What is the effect of the treatment on the value ?
-model1 <- aov(Scores ~ Treat02, data=sampledata) #must use the trt levels as factors
-S <- summary(model1)
-#print(S)
- 
-# Tukey test to study each pair of treatment :
-TUKEY <- TukeyHSD(x=model1, "Treat02", conf.level=0.95)
-#print(TUKEY)
-# Tuckey test representation :
-plot(TUKEY , las=1 , col="brown")
-
-tukey_table02 <- as.data.table(TUKEY$Treat02)
-tukey_table02$names <- rownames(TUKEY$Treat02)
-tukey_table02 <- tukey_table02[-which(names != "4-1" & names != "3-2"),]
-
-print(tukey_table02)
-
-
-
-```
-
-
-```{r echo=FALSE, results='hide',message=FALSE}
-
-# What is the effect of the treatment on the value ?
-model1 <- aov(Scores ~ Treat03, data=sampledata) #must use the trt levels as factors
-S <- summary(model1)
-#print(S)
- 
-# Tukey test to study each pair of treatment :
-TUKEY <- TukeyHSD(x=model1, "Treat03", conf.level=0.95)
-#print(TUKEY)
-# Tuckey test representation :
-plot(TUKEY , las=1 , col="brown")
-
-tukey_table03 <- as.data.table(TUKEY$Treat03)
-tukey_table03$names <- rownames(TUKEY$Treat03)
-tukey_table03 <- tukey_table03[-which(names != "4-1" & names != "3-2"),]
-
-print(tukey_table03)
-
-
-
-```
-
-
-```{r}
-
-
-# What is the effect of the treatment on the value ?
-model1 <- aov(Scores ~ Treat04, data=sampledata) #must use the trt levels as factors
-S <- summary(model1)
-#print(S)
- 
-# Tukey test to study each pair of treatment :
-TUKEY <- TukeyHSD(x=model1, "Treat04", conf.level=0.95)
-#print(TUKEY)
-# Tuckey test representation :
-plot(TUKEY , las=1 , col="brown")
-
-tukey_table04 <- as.data.table(TUKEY$Treat04)
-tukey_table04$names <- rownames(TUKEY$Treat04)
-tukey_table04 <- tukey_table04[-which(names != "4-1" & names != "3-2"),]
-
-print(tukey_table04)
-
-
-
-
-```
-
-
-
-```{r}
-
-pairwise.t.test(sampledata$Scores, sampledata$Treat02, p.adjust="none", pool.sd = T)
-
-pairwise.t.test(sampledata$Scores, sampledata$Treat02, p.adjust="bonferroni", pool.sd = T)
-
-pairwise.t.test(sampledata$Scores, sampledata$Treat02, p.adjust="holm", pool.sd = T)
-
-pairwise.t.test(sampledata$Scores, sampledata$Treat02, p.adjust="BH", pool.sd = T)
-
-
-
-
-```
-
-Using Kruskal Wallis Test & Pairwaise Wilcox test
-
-```{r}
-kruskal.test(Scores ~ Treat02, data = sampledata)
-
-#pairwise.wilcox.test(rawdata$Post, rawdata$Post, p.adjust="BH", paired = TRUE)
-
-
-
-```
-
-
-
-
-
-For pairwise comparison between $\tau_{1}$ & $\tau_{0}$, we'll have the contrast:
-$\tau_{1} - \tau_{0}$
+for (q in col_names_old) {
+  #print(q)
   
-For each of the contrasts, coffecients $C_{1} = 1$ & $C_{2} = -1$.
+  if (grepl("Pre.", q) == 1) {
+    d2 <- clean.data2[, .(count = .N, tests = "Pre"), by = q]
+    setnames(d2, c(q), c("options"))
+    d2$q_codes <- c(rep(substr(q, (nchar("Pre.")+1), nchar(q)), 3))
 
-In our problem, $a = 2, n = 262, r_{i} = 131$
-
-The general form of confidence interval:
-
-$CI \epsilon LSE \pm W_{critical} \times Std. Error$
-
-From Tukey Method, we have the equation for Confidence interval:
-
-
-$(\tau_{p} - \tau_{s})\epsilon[(\bar{y}_{p.}-\bar{y}_{s.}) \pm W_T\times \sqrt{MSE \times \frac{\sum{C_{i}^2}} {r_{i}}}]$
-
-where, $W_T = \frac{1} {\sqrt{2}} \times q_{a, df,\alpha}$
-
-So the comparison done between $W_B$ & $W_T$ should be enough, because for each contrasts the lse part and std error part will be same for both methods. The only difference maker will be the Critical Values.
-
-```{r}
-Ci <- c(1,-1)
-alpha <- 0.05
-r <- 131
-a = 2
-n <- a*r
-
-q = qtukey(alpha, nmeans=a, df=(n-a), nranges = 1, lower.tail = FALSE)
-
-W_T=(1/sqrt(2))*q
-
-print(paste0("W_T = ",W_T))
-
-print("Tukey will give better result for 95% confidence level compared to Bonferroni, for the same confidence level")
-
-```
-
-For the same confidence level of 95%, the width bracket of the Confidence Interval of Bonferroni will be larger than Tukey, for each of the contrasts.
-So we can conclude with 95% confidence that Tukey Method is better than Bonferroni for all pairwise comparisons in this problem.
-
-# Problem 01(b):
-
-Let's analyze the confidence intervals further more to decide which circuit type will give us the lowest response time.
-
-```{r}
-
-y_bar_0_dot <- mean(sampledata[which(sampledata$Treatment=="0"),]$Score)
-
-y_bar_1_dot <- mean(sampledata[which(sampledata$Treatment=="1"),]$Score)
-
-lse<- y_bar_1_dot - y_bar_0_dot
-
-se <- sqrt(MSE*sum(Ci^2/r))
-
-Tukey_lower <- (lse-W_T*se)
-Tukey_upper <- (lse+W_T*se)
-CI_Tukey <- data.table(Tukey_lower, Tukey_upper) 
-#row.names(CI_Tukey) <- c("T1-T0")
-print(CI_Tukey)
-
-```
-
-We know that when,
-
-  + $CI(\tau_{1} - \tau_{0})$ includes 0; then $\tau_{p}$ & $\tau_{s}$ are similar in response time
-  + $CI(\tau_{1} - \tau_{0})$ both greater than 0; then $\tau_{s}$ has lower response time than  $\tau_{p}$.
-  + $CI(\tau_{1} - \tau_{0})$ both less than 0; then $\tau_{p}$ has lower response time than  $\tau_{s}$.
   
-Looking at the table CI_Tukey we can see that $\tau_{1}$ and $\tau_{1}$ both has lower response time than $\tau_{2}$ and also in terms of statiscial confidence $\tau_{1}$ and $\tau_{3}$ has similar reponse times. 
+  } else {
+    d2 <- clean.data2[, .(count = .N, tests = "Post"), by = q]
+    setnames(d2, c(q), c("options"))
+    d2$q_codes <- c(rep(substr(q, (nchar("Post.")+1), nchar(q)), 3))
 
-So as a design engineer we have to select either $\tau_{1}$ or $\tau_{3}$ to get the minimum response time.
-Looking at the lse value between $\tau_{3}$ & $\tau_{1}$ gives us some more insight.
-As lse of $(\tau_{3} - \tau_{1}) <0$; We can decide on selecting $\tau_{3}$, which is circuit type 3, to get the lowest reponse time.
-
-So, the design engineer should select "Circuit type 3" to minimize the response time at 95% confidence level.
-
-
-For $\tau_{0}$ to be control, for treatment vs control comparison will be:
-
-  + $\tau_{1} - \tau_{0}$
   
-For each of the contrasts, coffecients $C_{1} = 1$ & $C_{2} = -1$.
-
-In this problem, $a = 2, n = 262, r_{i} = 131, \alpha = 0.05$
+  }
 
 
-```{r}
-Ci <- c(1,-1)
-alpha <- 0.05
-r <- 131
-rho <- 0.5
+  d <- rbind(d,d2) 
+  
+}
 
-# W_D1 =qNCDun(p=1-alpha, nu=a*r-a, rho=(rep(rho,times=a-1)), delta=rep(0,times=a-1), two.sided=F)
+ d <- d[, .(tests = tests, percent = (count/sum(count))), by = c("options","q_codes")]
+ 
 
-W_D2 <- qNCDun(p=1-alpha, nu=a*r-a, rho=(rep(rho,times=a-1)), delta=rep(0,times=a-1), two.sided=T)
+head(d, n = 05)
 
 ```
 
-Let' check the confidence interval to get more insight.
 
-```{r}
+### Figure 05:
 
-y_bar_0_dot <- mean(sampledata[which(sampledata$Treatment=="0"),]$Score)
+```{r echo=FALSE, message=FALSE}
 
-y_bar_1_dot <- mean(sampledata[which(sampledata$Treatment=="1"),]$Score)
 
-lse<- y_bar_1_dot - y_bar_0_dot
+ggplot(d, aes(x = options, y = percent, group = q_codes, fill = tests)) +
+    geom_bar(position = "fill", stat = "identity") +
+    #geom_text(aes(label = round(percent,2) ), position = position_stack(vjust = .5), color = "black", size = 2) +
+    geom_hline(yintercept=0.5, linetype="dashed", color = "blue", size=1) +
+    ggtitle("Comparison of Pre-test and Post-test options \n by Questions") +
+    xlab("options") + 
+    ylab("count") +
+    facet_grid( ~ q_codes)
+    
+rm(d2)
+rm(d)
 
-se <- sqrt(MSE*sum(Ci^2/r))
-
-Dunnet_lower <- (lse-W_D2*se)
-Dunnet_upper <- (lse+W_D2*se)
-CI_Dunnet <- data.table(Dunnet_lower, Dunnet_upper) 
-print(CI_Dunnet)
 
 ```
 
-We can conclude with 99% confidence that $\tau_{1}$ both has lower response time than $\tau_{2}$ and also in terms of statiscial confidence $\tau_{1}$ and $\tau_{3}$ has similar reponse times, so they are both low. But looking at the lse we can select $\tau_{3}$ to be the lowest in reponse time.
+
+```{r echo=FALSE, results='show', message=FALSE}
+
+
+ggboxplot(newdata_melted, x = "Tests", y = "Scores", 
+          color = "Tests", palette = c("blue", "red"),
+          order = c("PreScore", "PostScore"),
+          ylab = "Scores", xlab = "Tests")
+
+
+#plot(newdata$PreScore, newdata$PostScore)
+t.test(newdata$PostScore, newdata$PreScore, mu = 0, alt = "two.sided", paired = T, conf.level = 0.95)
+
+wilcox.test(newdata$PostScore, newdata$PreScore, mu = 0, alt = "two.sided", paired = T, conf.int = T, conf.level = 0.95, exact = F, correct = F)
+
+
+
+```
+
+
+
+
+
+
