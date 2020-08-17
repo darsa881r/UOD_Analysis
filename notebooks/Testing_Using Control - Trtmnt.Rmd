@@ -21,7 +21,7 @@ library("ggplot2")
 library("nCDunnett")
 library("multcompView")
 library("ggpubr")
-
+library("PairedData")
 
 ```
 
@@ -438,10 +438,6 @@ ggboxplot(newdata_melted, x = "Tests", y = "Scores",
           ylab = "Scores", xlab = "Tests")
 
 
-#plot(newdata$PreScore, newdata$PostScore)
-t.test(newdata$PostScore, newdata$PreScore, mu = 0, alt = "two.sided", paired = T, conf.level = 0.95)
-
-wilcox.test(newdata$PostScore, newdata$PreScore, mu = 0, alt = "two.sided", paired = T, conf.int = T, conf.level = 0.95, exact = F, correct = F)
 
 
 
@@ -449,6 +445,102 @@ wilcox.test(newdata$PostScore, newdata$PreScore, mu = 0, alt = "two.sided", pair
 
 
 
+```{r echo=FALSE, results='show', message=FALSE}
+
+# Subset weight data before treatment
+before <- subset(newdata_melted,  Tests == "PreScore", Scores,
+                 drop = TRUE)
+# subset weight data after treatment
+after <- subset(newdata_melted,  Tests == "PostScore", Scores,
+                 drop = TRUE)
+# Plot paired data
+#library(PairedData)
+pd <- paired(before, after)
+plot(pd, type = "profile")
+
+rm(pd)
+rm(before)
+rm(after)
+
+```
+
+### Trying out paired t-tests
+
+Assumption 1: Are the two samples paired?
+Yes, since the data have been collected from suverying the same students twice before and after the intervention/program
+
+Assumption 2: Is this a large sample?
+N = 442 seems to be a large enough sample
+
+Two dependent samples (within-subject design)
+
+How to check the normality?
+Use Shapiro-Wilk normality test as described at: Normality Test in R.
+
+Null hypothesis: the data are normally distributed
+Alternative hypothesis: the data are not normally distributed
 
 
+
+
+```{r echo=FALSE, results='show', message=FALSE}
+
+
+
+# Change density plot fill colors by groups
+ggplot(newdata_melted, aes(x=Scores, fill=Tests)) +
+  geom_density(alpha=0.6) 
+  #geom_vline(newdata_melted, aes(xintercept=grp.mean, color=sex), linetype="dashed")
+
+
+
+
+```
+
+
+Null hypothesis: Mean difference between the pairs of observations is zero.
+Alternative hypothesis: Mean difference between the pairs of observations is NOT zero.
+
+
+```{r echo=FALSE, results='show', message=FALSE}
+
+t.test(newdata$PostScore, newdata$PreScore, mu = 0, alt = "two.sided", paired = T, conf.level = 0.95)
+
+
+
+
+```
+
+
+### Trying out Wilcoxon signed-rank test
+
+The paired samples Wilcoxon test (also known as Wilcoxon signed-rank test) is a non-parametric alternative to paired t-test used to compare paired data. It’s used when your data are not normally distributed.
+
+Ass 01: each pair of samples are random and independent from the other observations. But not necessairy leaning each pre observation is independent of post observation
+
+ass02: the distribution of the differences between the groups must be symmetrical
+
+Null hypothesis: Median difference between the pairs of observations is zero.
+Alternative hypothesis: Median difference between the pairs of observations is NOT zero.
+
+```{r echo=FALSE, results='show', message=FALSE}
+
+newdata$diff <- newdata$PostScore - newdata$PreScore
+
+ggplot(newdata, aes(x=diff, fill = diff)) +
+  geom_density(color="darkblue", fill="lightblue", alpha=0.6) +
+  geom_vline(xintercept=median(newdata$diff), color="red", linetype="dashed")
+
+
+```
+
+
+```{r echo=FALSE, results='show', message=FALSE}
+
+wilcox.test(newdata$PostScore, newdata$PreScore, alt = "two.sided", paired = T, conf.int = T, conf.level = 0.95, exact = F, correct = F)
+
+
+
+
+```
 

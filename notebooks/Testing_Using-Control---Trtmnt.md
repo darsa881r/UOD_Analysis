@@ -58,6 +58,31 @@ Converting raw data table into long tables.
 
 ![](Testing_Using-Control---Trtmnt_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->
 
+![](Testing_Using-Control---Trtmnt_files/figure-gfm/unnamed-chunk-16-1.png)<!-- -->
+
+### Trying out paired t-tests
+
+Assumption 1: Are the two samples paired? Yes, since the data have been
+collected from suverying the same students twice before and after the
+intervention/program
+
+Assumption 2: Is this a large sample? N = 442 seems to be a large enough
+sample
+
+Two dependent samples (within-subject design)
+
+How to check the normality? Use Shapiro-Wilk normality test as described
+at: Normality Test in R.
+
+Null hypothesis: the data are normally distributed Alternative
+hypothesis: the data are not normally distributed
+
+![](Testing_Using-Control---Trtmnt_files/figure-gfm/unnamed-chunk-17-1.png)<!-- -->
+
+Null hypothesis: Mean difference between the pairs of observations is
+zero. Alternative hypothesis: Mean difference between the pairs of
+observations is NOT zero.
+
     ## 
     ##  Paired t-test
     ## 
@@ -69,6 +94,25 @@ Converting raw data table into long tables.
     ## sample estimates:
     ## mean of the differences 
     ##                28.32579
+
+### Trying out Wilcoxon signed-rank test
+
+The paired samples Wilcoxon test (also known as Wilcoxon signed-rank
+test) is a non-parametric alternative to paired t-test used to compare
+paired data. It’s used when your data are not normally distributed.
+
+Ass 01: each pair of samples are random and independent from the other
+observations. But not necessairy leaning each pre observation is
+independent of post observation
+
+ass02: the distribution of the differences between the groups must be
+symmetrical
+
+Null hypothesis: Median difference between the pairs of observations is
+zero. Alternative hypothesis: Median difference between the pairs of
+observations is NOT zero.
+
+![](Testing_Using-Control---Trtmnt_files/figure-gfm/unnamed-chunk-19-1.png)<!-- -->
 
     ## 
     ##  Wilcoxon signed rank test
