@@ -1,13 +1,15 @@
+
+---
 title: 'Testing UOD survey data'
 author: "Sabbir Hassan"
-output: 
-   html_notebook: default
-   word_document: default
-   pdf_document: default
+output: github_document
+   
 ---
 
 ```{r  echo=FALSE, results='hide',message=FALSE, warning=FALSE, fig.show='hide'}
-
+#html_notebook: default
+ #  word_document: default
+  # pdf_document: default
 library("R.methodsS3")
 library("R.oo")
 library("R.utils")
