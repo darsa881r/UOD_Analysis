@@ -134,4 +134,14 @@ This is one of the reasons, we do not conduct control-treatment
 analysis, as it would not mean anything.
 
 Also, we have to think, are these questions really capturing the essence
-of behaviour change ??
+of behaviour change ?? An academic might think the program is just
+informing the students about disabilites, thus increasing their
+knowledge on that topic. But there is no way to find out if their
+attitude or behaviour is changing from the program, yet, from the
+current survey/program.
+
+### How to use textual / image data in evaluating behaviour change:
+
+I’m not sure yet how to incorporate textual data in the evaluation yet.
+I see no such questions that varies in textual / image data before and
+after the program.
