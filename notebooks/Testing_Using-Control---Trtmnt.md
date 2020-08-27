@@ -6,6 +6,13 @@ Sabbir Hassan
 
 ### Score Map Table:
 
+The basic idea is to award points for correct answers and no rewards for
+incorrect answers. The percentage of the sum of the points will be the
+score for the individual student.
+
+Only 5 questions, which varies on the pre-test and post-test, were used
+for scoring.
+
 | q\_codes | questions                                              | options    | scores |
 | :------- | :----------------------------------------------------- | :--------- | -----: |
 | Q3a      | People autism act same.                                | True       |      0 |
@@ -34,94 +41,95 @@ Converting raw data table into long tables.
 
 | Subject.Id | Schools | Tests     | Scores |
 | :--------- | :------ | :-------- | -----: |
-| F59        | F       | PreScore  |     60 |
-| F67        | F       | PreScore  |     40 |
+| F59        | F       | PreScore  |     40 |
+| F67        | F       | PreScore  |     20 |
 | M47        | M       | PostScore |    100 |
 | M14        | M       | PostScore |     60 |
-| F28        | F       | PreScore  |     30 |
+| F28        | F       | PreScore  |     60 |
+| P29        | P       | PostScore |    100 |
+| M49        | M       | PostScore |    100 |
+| P10        | P       | PreScore  |     40 |
+| M38        | M       | PreScore  |     80 |
+| P3         | P       | PostScore |    100 |
 
 ### Figure 02:
 
-![](Testing_Using-Control---Trtmnt_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
+![](Testing_Using-Control---Trtmnt_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
 
 ### Figure 03:
 
-![](Testing_Using-Control---Trtmnt_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
+It seems that Post-Test scores are higher on average compared to the
+Pre-Test scores.
+
+![](Testing_Using-Control---Trtmnt_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
 
 ### Figure 04:
 
-![](Testing_Using-Control---Trtmnt_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
+This bar plot shows comparison between the pre-test scores and post-test
+scores schools. On average the test scores seems to have improved after
+the program was offered.
+
+![](Testing_Using-Control---Trtmnt_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
 
 ### Figure 05:
 
+Looking at this figure we can certainly say that more percentage of
+students were able to answer the questions correctly after the program
+was offered.
+
+![](Testing_Using-Control---Trtmnt_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->
+
+### Figure 06:
+
+The same conclusion can be seen from the box-plot below.
+
 ![](Testing_Using-Control---Trtmnt_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
 
-![](Testing_Using-Control---Trtmnt_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->
-
-![](Testing_Using-Control---Trtmnt_files/figure-gfm/unnamed-chunk-16-1.png)<!-- -->
-
-### Trying out paired t-tests
+### Trying out Wilcoxon signed-rank test
 
 Assumption 1: Are the two samples paired? Yes, since the data have been
 collected from suverying the same students twice before and after the
 intervention/program
 
-Assumption 2: Is this a large sample? N = 442 seems to be a large enough
+Assumption 2: Is this a large sample? N = 274 seems to be a large enough
 sample
 
 Two dependent samples (within-subject design)
 
-How to check the normality? Use Shapiro-Wilk normality test as described
-at: Normality Test in R.
-
-Null hypothesis: the data are normally distributed Alternative
-hypothesis: the data are not normally distributed
+Checking the normality: From the figure below we can say that the
+distribution is not normal.
 
 ![](Testing_Using-Control---Trtmnt_files/figure-gfm/unnamed-chunk-17-1.png)<!-- -->
 
-Null hypothesis: Mean difference between the pairs of observations is
-zero. Alternative hypothesis: Mean difference between the pairs of
-observations is NOT zero.
-
-    ## 
-    ##  Paired t-test
-    ## 
-    ## data:  newdata$PostScore and newdata$PreScore
-    ## t = 15.86, df = 220, p-value < 2.2e-16
-    ## alternative hypothesis: true difference in means is not equal to 0
-    ## 95 percent confidence interval:
-    ##  24.80602 31.84557
-    ## sample estimates:
-    ## mean of the differences 
-    ##                28.32579
-
-### Trying out Wilcoxon signed-rank test
+So we cannot use paired sample t-test, instead we use Wilcoxon Test.
 
 The paired samples Wilcoxon test (also known as Wilcoxon signed-rank
 test) is a non-parametric alternative to paired t-test used to compare
 paired data. It’s used when your data are not normally distributed.
 
-Ass 01: each pair of samples are random and independent from the other
-observations. But not necessairy leaning each pre observation is
-independent of post observation
-
-ass02: the distribution of the differences between the groups must be
-symmetrical
-
-Null hypothesis: Median difference between the pairs of observations is
-zero. Alternative hypothesis: Median difference between the pairs of
-observations is NOT zero.
-
-![](Testing_Using-Control---Trtmnt_files/figure-gfm/unnamed-chunk-19-1.png)<!-- -->
-
     ## 
     ##  Wilcoxon signed rank test
     ## 
     ## data:  newdata$PostScore and newdata$PreScore
-    ## V = 16616, p-value < 2.2e-16
+    ## V = 18525, p-value < 2.2e-16
     ## alternative hypothesis: true location shift is not equal to 0
     ## 95 percent confidence interval:
-    ##  30.00000 39.99996
+    ##  39.99995 40.00004
     ## sample estimates:
     ## (pseudo)median 
-    ##       34.99998
+    ##       39.99998
+
+From the 95% confidence interval it can be said the median difference of
+the scores are statistically significant at alpha-level 0.95
+
+### Causal Inference:
+
+Can we say that the the Program offered causes the change in Test scores
+???
+
+No, we cannot. For that we need to conduct a randomized control trial.
+From academic literature, it can be said that Quasi-Experimental
+experiments cannot guarantee causal effect.
+
+Also, we have to think, are these questions really capturing the essence
+of behaviour change ??

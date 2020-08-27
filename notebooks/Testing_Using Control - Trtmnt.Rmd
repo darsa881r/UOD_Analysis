@@ -1,4 +1,3 @@
-
 ---
 title: 'Testing UOD survey data'
 author: "Sabbir Hassan"
@@ -7,6 +6,7 @@ output: github_document
 ---
 
 ```{r  echo=FALSE, results='hide',message=FALSE, warning=FALSE, fig.show='hide'}
+
 #html_notebook: default
  #  word_document: default
   # pdf_document: default
@@ -23,11 +23,17 @@ library("multcompView")
 library("ggpubr")
 library("PairedData")
 
+
 ```
 
 # Understanding Our differences: Autism Survey Analysis
 
 ### Score Map Table:
+
+The basic idea is to award points for correct answers and no rewards for incorrect answers. The percentage of the sum of the points will be the score for the individual student.
+
+Only 5 questions, which varies on the pre-test and post-test, were used for scoring.
+
 
 ```{r echo=FALSE, results = 'asis', message=FALSE}
 
@@ -118,7 +124,7 @@ idx2 = which(clean.data$Pre.Q3a==2)
 idx3 = which(clean.data$Pre.Q3a==3)
 
 clean.data$Pre.Q3a[idx1]=0
-clean.data$Pre.Q3a[idx2]=2
+clean.data$Pre.Q3a[idx2]=1
 clean.data$Pre.Q3a[idx3]=0
 
 
@@ -127,7 +133,7 @@ idx2 = which(clean.data$Post.Q3a==2)
 idx3 = which(clean.data$Post.Q3a==3)
 
 clean.data$Post.Q3a[idx1]=0
-clean.data$Post.Q3a[idx2]=2
+clean.data$Post.Q3a[idx2]=1
 clean.data$Post.Q3a[idx3]=0
 
 
@@ -135,7 +141,7 @@ idx1 = which(clean.data$Pre.Q3b==1)
 idx2 = which(clean.data$Pre.Q3b==2)
 idx3 = which(clean.data$Pre.Q3b==3)
 
-clean.data$Pre.Q3b[idx1]=2
+clean.data$Pre.Q3b[idx1]=1
 clean.data$Pre.Q3b[idx2]=0
 clean.data$Pre.Q3b[idx3]=0
 
@@ -143,7 +149,7 @@ idx1 = which(clean.data$Post.Q3b==1)
 idx2 = which(clean.data$Post.Q3b==2)
 idx3 = which(clean.data$Post.Q3b==3)
 
-clean.data$Post.Q3b[idx1]=2
+clean.data$Post.Q3b[idx1]=1
 clean.data$Post.Q3b[idx2]=0
 clean.data$Post.Q3b[idx3]=0
 
@@ -151,7 +157,7 @@ idx1 = which(clean.data$Pre.Q3c==1)
 idx2 = which(clean.data$Pre.Q3c==2)
 idx3 = which(clean.data$Pre.Q3c==3)
 
-clean.data$Pre.Q3c[idx1]=2
+clean.data$Pre.Q3c[idx1]=1
 clean.data$Pre.Q3c[idx2]=0
 clean.data$Pre.Q3c[idx3]=0
 
@@ -159,7 +165,7 @@ idx1 = which(clean.data$Post.Q3c==1)
 idx2 = which(clean.data$Post.Q3c==2)
 idx3 = which(clean.data$Post.Q3c==3)
 
-clean.data$Post.Q3c[idx1]=2
+clean.data$Post.Q3c[idx1]=1
 clean.data$Post.Q3c[idx2]=0
 clean.data$Post.Q3c[idx3]=0
 
@@ -168,7 +174,7 @@ idx2 = which(clean.data$Pre.Q3a==2)
 idx3 = which(clean.data$Pre.Q3a==3)
 
 clean.data$Pre.Q3d[idx1]=0
-clean.data$Pre.Q3d[idx2]=2
+clean.data$Pre.Q3d[idx2]=1
 clean.data$Pre.Q3d[idx3]=0
 
 
@@ -177,7 +183,7 @@ idx2 = which(clean.data$Post.Q3d==2)
 idx3 = which(clean.data$Post.Q3d==3)
 
 clean.data$Post.Q3d[idx1]=0
-clean.data$Post.Q3d[idx2]=2
+clean.data$Post.Q3d[idx2]=1
 clean.data$Post.Q3d[idx3]=0
 
 
@@ -187,7 +193,7 @@ idx2 = which(clean.data$Pre.Q3e==2)
 idx3 = which(clean.data$Pre.Q3e==3)
 
 clean.data$Pre.Q3e[idx1]=0
-clean.data$Pre.Q3e[idx2]=2
+clean.data$Pre.Q3e[idx2]=1
 clean.data$Pre.Q3e[idx3]=0
 
 
@@ -196,7 +202,7 @@ idx2 = which(clean.data$Post.Q3e==2)
 idx3 = which(clean.data$Post.Q3e==3)
 
 clean.data$Post.Q3e[idx1]=0
-clean.data$Post.Q3e[idx2]=2
+clean.data$Post.Q3e[idx2]=1
 clean.data$Post.Q3e[idx3]=0
 
 
@@ -213,9 +219,9 @@ rm(idx3)
 
 ```{r  echo=FALSE, results='hide',message=FALSE}
 clean.data$PreScore <- apply(clean.data[,c(4:8)], 1, sum)
-clean.data$PreScore <- (clean.data$PreScore/10)*100
+clean.data$PreScore <- (clean.data$PreScore/5)*100
 clean.data$PostScore <- apply(clean.data[,c(9:13)], 1, sum)
-clean.data$PostScore <- (clean.data$PostScore/10)*100
+clean.data$PostScore <- (clean.data$PostScore/5)*100
 
 
 #kable(head(clean.data, n = 5))
@@ -244,16 +250,14 @@ newdata_melted <- newdata_melted[rows, ]
 rm(rows)
 
 
-kable(head(newdata_melted, n=5))
+kable(head(newdata_melted, n=10))
 
 
 ```
 
-```{r echo=FALSE, results='hide', message=FALSE}
 
 
 
-```
 
 ### Figure 02:
 
@@ -275,12 +279,14 @@ rm(viz_schools)
 
 ### Figure 03:
 
+It seems that Post-Test scores are higher on average compared to the Pre-Test scores.
+
 ```{r  echo=FALSE, message=FALSE}
 
 ggplot(newdata_melted, aes(x=Scores, fill=Tests)) + 
   geom_histogram(breaks=seq(0,100, by=20), 
                  col="blue") +
-  ggtitle("Distribution of Pre & Post Scores \n (averaged by Schools)") +
+  ggtitle("Distribution of Pre & Post Scores") +
   xlab("% Avg Scores") +
   ylab("Count")
 
@@ -289,6 +295,8 @@ ggplot(newdata_melted, aes(x=Scores, fill=Tests)) +
 ```
 
 ### Figure 04:
+
+This bar plot shows comparison between the pre-test scores and post-test scores schools. On average the test scores seems to have improved after the program was offered.
 
 ```{r echo=FALSE, message=FALSE}
 
@@ -410,6 +418,8 @@ head(d, n = 05)
 
 ### Figure 05:
 
+Looking at this figure we can certainly say that more percentage of students were able to answer the questions correctly after the program was offered.
+
 ```{r echo=FALSE, message=FALSE}
 
 
@@ -429,6 +439,11 @@ rm(d)
 ```
 
 
+### Figure 06:
+
+The same conclusion can be seen from the box-plot below.
+
+
 ```{r echo=FALSE, results='show', message=FALSE}
 
 
@@ -445,7 +460,8 @@ ggboxplot(newdata_melted, x = "Tests", y = "Scores",
 
 
 
-```{r echo=FALSE, results='show', message=FALSE}
+
+```{r echo=FALSE, results='hide', message=FALSE,  fig.show='hide'}
 
 # Subset weight data before treatment
 before <- subset(newdata_melted,  Tests == "PreScore", Scores,
@@ -464,45 +480,17 @@ rm(after)
 
 ```
 
-### Trying out paired t-tests
-
-Assumption 1: Are the two samples paired?
-Yes, since the data have been collected from suverying the same students twice before and after the intervention/program
-
-Assumption 2: Is this a large sample?
-N = 442 seems to be a large enough sample
-
-Two dependent samples (within-subject design)
-
-How to check the normality?
-Use Shapiro-Wilk normality test as described at: Normality Test in R.
-
-Null hypothesis: the data are normally distributed
-Alternative hypothesis: the data are not normally distributed
 
 
 
 
-```{r echo=FALSE, results='show', message=FALSE}
+```{r echo=FALSE, results='hide', message=FALSE}
 
 
-
-# Change density plot fill colors by groups
-ggplot(newdata_melted, aes(x=Scores, fill=Tests)) +
-  geom_density(alpha=0.6) 
-  #geom_vline(newdata_melted, aes(xintercept=grp.mean, color=sex), linetype="dashed")
+#Null hypothesis: Mean difference between the pairs of observations is zero.
+#Alternative hypothesis: Mean difference between the pairs of observations is NOT zero.
 
 
-
-
-```
-
-
-Null hypothesis: Mean difference between the pairs of observations is zero.
-Alternative hypothesis: Mean difference between the pairs of observations is NOT zero.
-
-
-```{r echo=FALSE, results='show', message=FALSE}
 
 t.test(newdata$PostScore, newdata$PreScore, mu = 0, alt = "two.sided", paired = T, conf.level = 0.95)
 
@@ -514,16 +502,36 @@ t.test(newdata$PostScore, newdata$PreScore, mu = 0, alt = "two.sided", paired = 
 
 ### Trying out Wilcoxon signed-rank test
 
-The paired samples Wilcoxon test (also known as Wilcoxon signed-rank test) is a non-parametric alternative to paired t-test used to compare paired data. It’s used when your data are not normally distributed.
+Assumption 1: Are the two samples paired?
+Yes, since the data have been collected from suverying the same students twice before and after the intervention/program
 
-Ass 01: each pair of samples are random and independent from the other observations. But not necessairy leaning each pre observation is independent of post observation
+Assumption 2: Is this a large sample?
+N = 274 seems to be a large enough sample
 
-ass02: the distribution of the differences between the groups must be symmetrical
+Two dependent samples (within-subject design)
 
-Null hypothesis: Median difference between the pairs of observations is zero.
-Alternative hypothesis: Median difference between the pairs of observations is NOT zero.
+Checking the normality:
+From the figure below we can say that the distribution is not normal.
+
 
 ```{r echo=FALSE, results='show', message=FALSE}
+
+# Change density plot fill colors by groups
+ggplot(newdata_melted, aes(x=Scores, fill=Tests)) +
+  geom_density(alpha=0.6) 
+  #geom_vline(newdata_melted, aes(xintercept=grp.mean, color=sex), linetype="dashed")
+
+
+```
+
+
+So we cannot use paired sample t-test, instead we use Wilcoxon Test.
+
+The paired samples Wilcoxon test (also known as Wilcoxon signed-rank test) is a non-parametric alternative to paired t-test used to compare paired data. It’s used when your data are not normally distributed.
+
+
+
+```{r echo=FALSE, results='hide', message=FALSE,  fig.show='hide'}
 
 newdata$diff <- newdata$PostScore - newdata$PreScore
 
@@ -543,4 +551,15 @@ wilcox.test(newdata$PostScore, newdata$PreScore, alt = "two.sided", paired = T, 
 
 
 ```
+
+From the 95% confidence interval it can be said the median difference of the scores are statistically significant at alpha-level 0.95
+
+
+### Causal Inference: 
+
+Can we say that the the Program offered causes the change in Test scores ??? 
+
+No, we cannot. For that we need to conduct a randomized control trial. From academic literature, it can be said that Quasi-Experimental experiments cannot guarantee causal effect.
+
+Also, we have to think, are these questions really capturing the essence of behaviour change ??
 
