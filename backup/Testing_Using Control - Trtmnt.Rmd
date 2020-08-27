@@ -1,0 +1,567 @@
+---
+title: 'Testing UOD survey data'
+author: "Sabbir Hassan"
+output: github_document
+   
+---
+
+```{r  echo=FALSE, results='hide',message=FALSE, warning=FALSE, fig.show='hide'}
+
+#html_notebook: default
+ #  word_document: default
+  # pdf_document: default
+library("R.methodsS3")
+library("R.oo")
+library("R.utils")
+library("knitr")
+library("rmarkdown")
+library("markdown")
+library("data.table")
+library("ggplot2")
+library("nCDunnett")
+library("multcompView")
+library("ggpubr")
+library("PairedData")
+
+
+```
+
+# Understanding Our differences: Autism Survey Analysis
+
+### Score Map Table:
+
+The basic idea is to award points for correct answers and no rewards for incorrect answers. The percentage of the sum of the points will be the score for the individual student.
+
+Only 5 questions, which varies on the pre-test and post-test, were used for scoring.
+
+
+```{r echo=FALSE, results = 'asis', message=FALSE}
+
+rm(list=ls())
+
+q_codes <- as.factor(c(rep("Q3a",3), rep("Q3b",3), rep("Q3c",3), rep("Q3d",3) ,rep("Q3e",3)))
+
+questions <- as.factor(c(rep(c("People autism act same."), 3),rep(c("Brain affected by autism."), 3),rep(c("People autism strong interest in one topic."), 3),rep(c("Bright lights, loud noises don’t bother people autism."), 3),rep(c("People autism good at reading emotions."), 3)))
+
+survey_data <- data.table(q_codes, questions)
+
+survey_data$options <- as.factor(c("True","False","Don't Know","True","False","Don't Know","True","False","Don't Know","True","False","Don't Know","True","False","Don't Know"))
+
+survey_data$scores <- as.integer(c(0,1,0,1,0,0,1,0,0,0,1,0,0,1,0))
+
+
+#head(survey_data, n=05)
+
+kable(survey_data)
+
+#write.csv(survey_data, file = "C:\\Users\\sabbi\\Dropbox\\ProBono\\UOD\\UOD_Analysis\\output\\scoremap.csv")
+
+
+```
+
+### Figure 01
+
+```{r echo=FALSE, results = 'show', message=FALSE}
+
+viz_survey <- survey_data
+
+ggplot(viz_survey, aes(x = as.factor(viz_survey$scores), y = scores, fill=options)) +
+    geom_bar(position="dodge", stat="identity") +
+    ggtitle("Assignment of Scores \n by Questions") +
+    xlab("Questions") + 
+    ylab("Score") +
+    facet_grid( ~q_codes)
+rm(viz_survey)
+
+```
+
+
+
+
+### Generating Table
+
+Converting raw data table into long tables.
+
+```{r echo=FALSE, results='hide',message=FALSE}
+
+file_location <- "C:\\Users\\sabbi\\Dropbox\\ProBono\\UOD\\UOD_Analysis\\input\\rawdata.csv"
+rawdata=read.csv(file_location, header =TRUE, na.strings=c("","N/A","NA"), 
+                 stringsAsFactors = FALSE)
+
+setDT(rawdata)
+set.seed(100)
+# Shuffling the dataset
+rows <- sample(nrow(rawdata))
+rawdata <- rawdata[rows, ]
+rm(rows)
+
+col_names_old <- names(rawdata)
+setnames(rawdata, col_names_old[1:3], c("Schools","Student.Id","Subject.Id"))
+
+rawdata$Schools <- as.factor(rawdata$Schools)
+rawdata$Student.Id <- as.factor(rawdata$Student.Id)
+rawdata$Subject.Id <- as.factor(rawdata$Subject.Id)
+
+rawdata$Pre.Q.1 <- as.factor(rawdata$Pre.Q.1)
+rawdata$Q4 <- as.factor(rawdata$Q4)
+rawdata$Q5 <- as.factor(rawdata$Q5)
+
+
+#kable(head(rawdata, n = 5))
+
+
+```
+
+
+```{r echo=FALSE, results='hide',message=FALSE}
+
+clean.data <- na.omit(rawdata)
+
+clean.data <- clean.data[, c("Pre.Q.1","Q4","Q5"):=NULL] 
+
+idx1 = which(clean.data$Pre.Q3a==1)
+idx2 = which(clean.data$Pre.Q3a==2)
+idx3 = which(clean.data$Pre.Q3a==3)
+
+clean.data$Pre.Q3a[idx1]=0
+clean.data$Pre.Q3a[idx2]=1
+clean.data$Pre.Q3a[idx3]=0
+
+
+idx1 = which(clean.data$Post.Q3a==1)
+idx2 = which(clean.data$Post.Q3a==2)
+idx3 = which(clean.data$Post.Q3a==3)
+
+clean.data$Post.Q3a[idx1]=0
+clean.data$Post.Q3a[idx2]=1
+clean.data$Post.Q3a[idx3]=0
+
+
+idx1 = which(clean.data$Pre.Q3b==1)
+idx2 = which(clean.data$Pre.Q3b==2)
+idx3 = which(clean.data$Pre.Q3b==3)
+
+clean.data$Pre.Q3b[idx1]=1
+clean.data$Pre.Q3b[idx2]=0
+clean.data$Pre.Q3b[idx3]=0
+
+idx1 = which(clean.data$Post.Q3b==1)
+idx2 = which(clean.data$Post.Q3b==2)
+idx3 = which(clean.data$Post.Q3b==3)
+
+clean.data$Post.Q3b[idx1]=1
+clean.data$Post.Q3b[idx2]=0
+clean.data$Post.Q3b[idx3]=0
+
+idx1 = which(clean.data$Pre.Q3c==1)
+idx2 = which(clean.data$Pre.Q3c==2)
+idx3 = which(clean.data$Pre.Q3c==3)
+
+clean.data$Pre.Q3c[idx1]=1
+clean.data$Pre.Q3c[idx2]=0
+clean.data$Pre.Q3c[idx3]=0
+
+idx1 = which(clean.data$Post.Q3c==1)
+idx2 = which(clean.data$Post.Q3c==2)
+idx3 = which(clean.data$Post.Q3c==3)
+
+clean.data$Post.Q3c[idx1]=1
+clean.data$Post.Q3c[idx2]=0
+clean.data$Post.Q3c[idx3]=0
+
+idx1 = which(clean.data$Pre.Q3a==1)
+idx2 = which(clean.data$Pre.Q3a==2)
+idx3 = which(clean.data$Pre.Q3a==3)
+
+clean.data$Pre.Q3d[idx1]=0
+clean.data$Pre.Q3d[idx2]=1
+clean.data$Pre.Q3d[idx3]=0
+
+
+idx1 = which(clean.data$Post.Q3d==1)
+idx2 = which(clean.data$Post.Q3d==2)
+idx3 = which(clean.data$Post.Q3d==3)
+
+clean.data$Post.Q3d[idx1]=0
+clean.data$Post.Q3d[idx2]=1
+clean.data$Post.Q3d[idx3]=0
+
+
+
+idx1 = which(clean.data$Pre.Q3e==1)
+idx2 = which(clean.data$Pre.Q3e==2)
+idx3 = which(clean.data$Pre.Q3e==3)
+
+clean.data$Pre.Q3e[idx1]=0
+clean.data$Pre.Q3e[idx2]=1
+clean.data$Pre.Q3e[idx3]=0
+
+
+idx1 = which(clean.data$Post.Q3e==1)
+idx2 = which(clean.data$Post.Q3e==2)
+idx3 = which(clean.data$Post.Q3e==3)
+
+clean.data$Post.Q3e[idx1]=0
+clean.data$Post.Q3e[idx2]=1
+clean.data$Post.Q3e[idx3]=0
+
+
+
+#head(clean.data, n = 5)
+
+rm(idx1)
+rm(idx2)
+rm(idx3)
+
+
+```
+
+
+```{r  echo=FALSE, results='hide',message=FALSE}
+clean.data$PreScore <- apply(clean.data[,c(4:8)], 1, sum)
+clean.data$PreScore <- (clean.data$PreScore/5)*100
+clean.data$PostScore <- apply(clean.data[,c(9:13)], 1, sum)
+clean.data$PostScore <- (clean.data$PostScore/5)*100
+
+
+#kable(head(clean.data, n = 5))
+
+```
+
+
+
+```{r  echo=FALSE, results='show',message=FALSE}
+
+newdata <- clean.data[,c("Subject.Id","Schools","PreScore","PostScore"),]
+
+newdata_melted <- clean.data[,c("Subject.Id","Schools","PreScore","PostScore"),]
+
+newdata_melted <- melt(newdata_melted,id.vars = c("Subject.Id","Schools"))
+
+
+col_names_old <- names(newdata_melted)
+setnames(newdata_melted, col_names_old[3:4], c("Tests","Scores"))
+
+#head(newdata)
+set.seed(20)
+# Shuffling the dataset
+rows <- sample(nrow(newdata_melted))
+newdata_melted <- newdata_melted[rows, ]
+rm(rows)
+
+
+kable(head(newdata_melted, n=10))
+
+
+```
+
+
+
+
+
+### Figure 02:
+
+```{r echo=FALSE, results='hide', message=FALSE}
+
+viz_schools <- newdata_melted[, .(count = .N, Avg_Scores = mean(Scores)), by = c('Schools','Tests')]
+#head(viz_schools, n=5)
+
+ggplot(viz_schools, aes(x = Schools, y= count, fill=Schools)) +
+    geom_bar(stat="identity") +
+    ggtitle("Count of Students \n by Schools") +
+    xlab("Schools") + 
+    ylab("Count")
+
+
+rm(viz_schools)
+
+```
+
+### Figure 03:
+
+It seems that Post-Test scores are higher on average compared to the Pre-Test scores.
+
+```{r  echo=FALSE, message=FALSE}
+
+ggplot(newdata_melted, aes(x=Scores, fill=Tests)) + 
+  geom_histogram(breaks=seq(0,100, by=20), 
+                 col="blue") +
+  ggtitle("Distribution of Pre & Post Scores") +
+  xlab("% Avg Scores") +
+  ylab("Count")
+
+
+#plot(newdata_melted$Scores[which((newdata_melted$Tests == "PreScore"))],newdata_melted$Scores[which((newdata_melted$Tests == "PostScore"))],xlab="Pre Scores", ylab="Post Scores")
+```
+
+### Figure 04:
+
+This bar plot shows comparison between the pre-test scores and post-test scores schools. On average the test scores seems to have improved after the program was offered.
+
+```{r echo=FALSE, message=FALSE}
+
+viz_schools <- newdata_melted[, .(count = .N, Avg_Scores = mean(Scores)), by = c('Schools','Tests')]
+#head(viz_schools, n=5)
+
+ggplot(viz_schools, aes(x = Schools, y = Avg_Scores,fill=Tests)) +
+    geom_bar(position="dodge", stat="identity") +
+    #geom_hline(yintercept=0.5, linetype="dashed", color = "blue", size=1) +
+    ggtitle("Comparison of PreScore & PostScore \n by Schools") +
+    xlab("Schools") + 
+    ylab("% Avg Score")
+rm(viz_schools)
+
+```
+
+
+
+
+```{r echo=FALSE, results='hide',message=FALSE}
+
+clean.data2 <- na.omit(rawdata)
+clean.data2 <- clean.data2[, c("Schools","Student.Id","Pre.Q.1","Q4","Q5"):=NULL] 
+
+# ressiging pre-test data
+
+clean.data2$Pre.Q3a[which(clean.data2$Pre.Q3a==1)]="T"
+clean.data2$Pre.Q3a[which(clean.data2$Pre.Q3a==2)]="F"
+clean.data2$Pre.Q3a[which(clean.data2$Pre.Q3a==3)]="DK"
+
+clean.data2$Pre.Q3b[which(clean.data2$Pre.Q3b==1)]="T"
+clean.data2$Pre.Q3b[which(clean.data2$Pre.Q3b==2)]="F"
+clean.data2$Pre.Q3b[which(clean.data2$Pre.Q3b==3)]="DK"
+
+clean.data2$Pre.Q3c[which(clean.data2$Pre.Q3c==1)]="T"
+clean.data2$Pre.Q3c[which(clean.data2$Pre.Q3c==2)]="F"
+clean.data2$Pre.Q3c[which(clean.data2$Pre.Q3c==3)]="DK"
+
+clean.data2$Pre.Q3d[which(clean.data2$Pre.Q3d==1)]="T"
+clean.data2$Pre.Q3d[which(clean.data2$Pre.Q3d==2)]="F"
+clean.data2$Pre.Q3d[which(clean.data2$Pre.Q3d==3)]="DK"
+
+clean.data2$Pre.Q3e[which(clean.data2$Pre.Q3e==1)]="T"
+clean.data2$Pre.Q3e[which(clean.data2$Pre.Q3e==2)]="F"
+clean.data2$Pre.Q3e[which(clean.data2$Pre.Q3e==3)]="DK"
+
+
+
+# ressiging post-test data
+
+clean.data2$Post.Q3a[which(clean.data2$Post.Q3a==1)]="T"
+clean.data2$Post.Q3a[which(clean.data2$Post.Q3a==2)]="F"
+clean.data2$Post.Q3a[which(clean.data2$Post.Q3a==3)]="DK"
+
+clean.data2$Post.Q3b[which(clean.data2$Post.Q3b==1)]="T"
+clean.data2$Post.Q3b[which(clean.data2$Post.Q3b==2)]="F"
+clean.data2$Post.Q3b[which(clean.data2$Post.Q3b==3)]="DK"
+
+clean.data2$Post.Q3c[which(clean.data2$Post.Q3c==1)]="T"
+clean.data2$Post.Q3c[which(clean.data2$Post.Q3c==2)]="F"
+clean.data2$Post.Q3c[which(clean.data2$Post.Q3c==3)]="DK"
+
+clean.data2$Post.Q3d[which(clean.data2$Post.Q3d==1)]="T"
+clean.data2$Post.Q3d[which(clean.data2$Post.Q3d==2)]="F"
+clean.data2$Post.Q3d[which(clean.data2$Post.Q3d==3)]="DK"
+
+clean.data2$Post.Q3e[which(clean.data2$Post.Q3e==1)]="T"
+clean.data2$Post.Q3e[which(clean.data2$Post.Q3e==2)]="F"
+clean.data2$Post.Q3e[which(clean.data2$Post.Q3e==3)]="DK"
+
+clean.data2 <- data.table(clean.data2,stringsAsFactors=TRUE)
+
+head(clean.data2, n = 5)
+
+
+
+```
+
+
+```{r echo=FALSE, results='hide', message=FALSE}
+
+#clean.data2[, grepl("^Pre.", names(clean.data2)), with = FALSE]
+col_names_old <- colnames(clean.data2)
+col_names_old <- col_names_old[grepl("^Pre.|^Post.", col_names_old)]
+
+d <- data.table(options=factor(), count=numeric(), tests=factor(), q_codes=factor())
+
+#q <- "Pre.Q3b"
+
+for (q in col_names_old) {
+  #print(q)
+  
+  if (grepl("Pre.", q) == 1) {
+    d2 <- clean.data2[, .(count = .N, tests = "Pre"), by = q]
+    setnames(d2, c(q), c("options"))
+    d2$q_codes <- c(rep(substr(q, (nchar("Pre.")+1), nchar(q)), 3))
+
+  
+  } else {
+    d2 <- clean.data2[, .(count = .N, tests = "Post"), by = q]
+    setnames(d2, c(q), c("options"))
+    d2$q_codes <- c(rep(substr(q, (nchar("Post.")+1), nchar(q)), 3))
+
+  
+  }
+
+
+  d <- rbind(d,d2) 
+  
+}
+
+ d <- d[, .(tests = tests, percent = (count/sum(count))), by = c("options","q_codes")]
+ 
+
+head(d, n = 05)
+
+```
+
+
+### Figure 05:
+
+Looking at this figure we can certainly say that more percentage of students were able to answer the questions correctly after the program was offered.
+
+```{r echo=FALSE, message=FALSE}
+
+
+ggplot(d, aes(x = options, y = percent, group = q_codes, fill = tests)) +
+    geom_bar(position = "fill", stat = "identity") +
+    #geom_text(aes(label = round(percent,2) ), position = position_stack(vjust = .5), color = "black", size = 2) +
+    geom_hline(yintercept=0.5, linetype="dashed", color = "blue", size=1) +
+    ggtitle("Comparison of Pre-test and Post-test options \n by Questions") +
+    xlab("options") + 
+    ylab("count") +
+    facet_grid( ~ q_codes)
+    
+rm(d2)
+rm(d)
+
+
+```
+
+
+### Figure 06:
+
+The same conclusion can be seen from the box-plot below.
+
+
+```{r echo=FALSE, results='show', message=FALSE}
+
+
+ggboxplot(newdata_melted, x = "Tests", y = "Scores", 
+          color = "Tests", palette = c("blue", "red"),
+          order = c("PreScore", "PostScore"),
+          ylab = "Scores", xlab = "Tests")
+
+
+
+
+
+```
+
+
+
+
+```{r echo=FALSE, results='hide', message=FALSE,  fig.show='hide'}
+
+# Subset weight data before treatment
+before <- subset(newdata_melted,  Tests == "PreScore", Scores,
+                 drop = TRUE)
+# subset weight data after treatment
+after <- subset(newdata_melted,  Tests == "PostScore", Scores,
+                 drop = TRUE)
+# Plot paired data
+#library(PairedData)
+pd <- paired(before, after)
+plot(pd, type = "profile")
+
+rm(pd)
+rm(before)
+rm(after)
+
+```
+
+
+
+
+
+```{r echo=FALSE, results='hide', message=FALSE}
+
+
+#Null hypothesis: Mean difference between the pairs of observations is zero.
+#Alternative hypothesis: Mean difference between the pairs of observations is NOT zero.
+
+
+
+t.test(newdata$PostScore, newdata$PreScore, mu = 0, alt = "two.sided", paired = T, conf.level = 0.95)
+
+
+
+
+```
+
+
+### Trying out Wilcoxon signed-rank test
+
+Assumption 1: Are the two samples paired?
+Yes, since the data have been collected from suverying the same students twice before and after the intervention/program
+
+Assumption 2: Is this a large sample?
+N = 274 seems to be a large enough sample
+
+Two dependent samples (within-subject design)
+
+Checking the normality:
+From the figure below we can say that the distribution is not normal.
+
+
+```{r echo=FALSE, results='show', message=FALSE}
+
+# Change density plot fill colors by groups
+ggplot(newdata_melted, aes(x=Scores, fill=Tests)) +
+  geom_density(alpha=0.6) 
+  #geom_vline(newdata_melted, aes(xintercept=grp.mean, color=sex), linetype="dashed")
+
+
+```
+
+
+So we cannot use paired sample t-test, instead we use Wilcoxon Test.
+
+The paired samples Wilcoxon test (also known as Wilcoxon signed-rank test) is a non-parametric alternative to paired t-test used to compare paired data. It’s used when your data are not normally distributed.
+
+
+
+```{r echo=FALSE, results='hide', message=FALSE,  fig.show='hide'}
+
+newdata$diff <- newdata$PostScore - newdata$PreScore
+
+ggplot(newdata, aes(x=diff, fill = diff)) +
+  geom_density(color="darkblue", fill="lightblue", alpha=0.6) +
+  geom_vline(xintercept=median(newdata$diff), color="red", linetype="dashed")
+
+
+```
+
+
+```{r echo=FALSE, results='show', message=FALSE}
+
+wilcox.test(newdata$PostScore, newdata$PreScore, alt = "two.sided", paired = T, conf.int = T, conf.level = 0.95, exact = F, correct = F)
+
+
+
+
+```
+
+From the 95% confidence interval it can be said the median difference of the scores are statistically significant at alpha-level 0.95
+
+
+### Causal Inference: 
+
+Can we say that the Program offered causes the change in Test scores ??? 
+
+No, we cannot. For that we need to conduct a randomized control trial. From academic literature, it can be said that Quasi-Experimental experiments cannot guarantee causal effect.
+
+This is one of the reasons, we do not conduct control-treatment analysis, as it would not mean anything.
+
+Also, we have to think, are these questions really capturing the essence of behaviour change ??
+
