@@ -124,12 +124,14 @@ the scores are statistically significant at alpha-level 0.95
 
 ### Causal Inference:
 
-Can we say that the the Program offered causes the change in Test scores
-???
+Can we say that the Program offered causes the change in Test scores ???
 
 No, we cannot. For that we need to conduct a randomized control trial.
 From academic literature, it can be said that Quasi-Experimental
 experiments cannot guarantee causal effect.
+
+This is one of the reasons, we do not conduct control-treatment
+analysis, as it would not mean anything.
 
 Also, we have to think, are these questions really capturing the essence
 of behaviour change ??
