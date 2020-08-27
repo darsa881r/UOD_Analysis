@@ -40,9 +40,9 @@ vignettes/*.pdf
 
 # Files
 
-/input
-/resources
-/backup
+/input/
+/resources/
+/backup/
 
 # System files
 *.DS_Store
